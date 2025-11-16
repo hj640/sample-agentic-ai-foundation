@@ -4,6 +4,7 @@ phases:
   pre_build:
     commands:
       - echo Build started on `date`
+      - cd cx-agent-react
       - echo "Environment variables:"
       - echo "NEXT_PUBLIC_USER_POOL_ID=$NEXT_PUBLIC_USER_POOL_ID"
       - echo "NEXT_PUBLIC_USER_POOL_CLIENT_ID=$NEXT_PUBLIC_USER_POOL_CLIENT_ID"
