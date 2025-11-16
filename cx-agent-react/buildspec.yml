@@ -28,7 +28,7 @@ phases:
       - echo "NEXT_PUBLIC_USER_POOL_CLIENT_ID=$NEXT_PUBLIC_USER_POOL_CLIENT_ID"
       - echo "NEXT_PUBLIC_AWS_REGION=$NEXT_PUBLIC_AWS_REGION"
       - echo "NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL"
-      - npm run build
+      - npm run build --verbose
   post_build:
     commands:
       - echo Build completed on `date`
