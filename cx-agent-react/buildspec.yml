@@ -12,30 +12,14 @@ phases:
     commands:
       - echo Build started on `date`
       - cd cx-agent-react
-      - export NEXT_PUBLIC_USER_POOL_ID=$NEXT_PUBLIC_USER_POOL_ID
-      - export NEXT_PUBLIC_USER_POOL_CLIENT_ID=$NEXT_PUBLIC_USER_POOL_CLIENT_ID
-      - export NEXT_PUBLIC_AWS_REGION=$NEXT_PUBLIC_AWS_REGION
-      - export NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
       - npm install
   build:
     commands:
       - echo Build started on `date`
-      - export NEXT_PUBLIC_USER_POOL_ID=$NEXT_PUBLIC_USER_POOL_ID
-      - export NEXT_PUBLIC_USER_POOL_CLIENT_ID=$NEXT_PUBLIC_USER_POOL_CLIENT_ID
-      - export NEXT_PUBLIC_AWS_REGION=$NEXT_PUBLIC_AWS_REGION
-      - export NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-      - echo "NEXT_PUBLIC_USER_POOL_ID=$NEXT_PUBLIC_USER_POOL_ID"
-      - echo "NEXT_PUBLIC_USER_POOL_CLIENT_ID=$NEXT_PUBLIC_USER_POOL_CLIENT_ID"
-      - echo "NEXT_PUBLIC_AWS_REGION=$NEXT_PUBLIC_AWS_REGION"
-      - echo "NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL"
       - npm run build --verbose
   post_build:
     commands:
       - echo Build completed on `date`
-      - aws s3 sync out/ s3://$S3_BUCKET --delete
+      - aws s3 sync cx-agent-react/out/ s3://$S3_BUCKET --delete
+      - echo Creating CloudFront invalidation...
       - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
-
-artifacts:
-  files:
-    - '**/*'
-  base-directory: 'cx-agent-react/out'
