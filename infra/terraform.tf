@@ -2,6 +2,7 @@ terraform {
   backend "s3" {
     encrypt = true
     key     = "sample-agentic-ai-foundation.tfstate"
+    region  = "us-east-1"
     # TODO: Can we enable use_lockfile = true ?
   }
 

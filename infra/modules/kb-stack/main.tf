@@ -90,4 +90,6 @@ module "knowledge_base" {
   opensearch_index_name = "os-vector-index-${var.name}"
   kb_model_arn        = var.kb_model_arn
   s3_arn              = aws_s3_bucket.kb_bucket.arn
+
+  depends_on = [module.opensearch]
 }

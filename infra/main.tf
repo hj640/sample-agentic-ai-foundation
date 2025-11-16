@@ -62,24 +62,24 @@ module "parameters" {
 }
 
 # Secrets Module (depends on Cognito for client secret)
-module "secrets" {
-  source = "./modules/secrets"
-
-  cognito_client_secret = module.cognito.client_secret
-
-  # Placeholder values - replace with actual values
-  zendesk_domain      = var.zendesk_domain
-  zendesk_email       = var.zendesk_email
-  zendesk_api_token   = var.zendesk_api_token
-  langfuse_host       = var.langfuse_host
-  langfuse_public_key = var.langfuse_public_key
-  langfuse_secret_key = var.langfuse_secret_key
-  gateway_url         = var.gateway_url
-  gateway_api_key     = var.gateway_api_key
-  tavily_api_key      = var.tavily_api_key
-
-  depends_on = [module.cognito]
-}
+# module "secrets" {
+#  source = "./modules/secrets"
+#
+#  cognito_client_secret = module.cognito.client_secret
+#
+#  # Placeholder values - replace with actual values
+#  zendesk_domain      = var.zendesk_domain
+#  zendesk_email       = var.zendesk_email
+#  zendesk_api_token   = var.zendesk_api_token
+#  langfuse_host       = var.langfuse_host
+#  langfuse_public_key = var.langfuse_public_key
+#  langfuse_secret_key = var.langfuse_secret_key
+#  gateway_url         = var.gateway_url
+#  gateway_api_key     = var.gateway_api_key
+#  tavily_api_key      = var.tavily_api_key
+#
+#  depends_on = [module.cognito]
+#}
 
 # Deploy the endpoint
 resource "aws_bedrockagentcore_agent_runtime" "agent_runtime" {
@@ -103,4 +103,49 @@ resource "aws_bedrockagentcore_agent_runtime" "agent_runtime" {
   protocol_configuration {
     server_protocol = "HTTP"
   }
+}
+
+# Lambda Module 
+module "agentcore_lambda" {
+  source = "./modules/lambda"
+  
+  agent_arn            = aws_bedrockagentcore_agent_runtime.agent_runtime.agent_runtime_arn
+  lambda_function_name = "agentcore-lambda"
+
+  depends_on = [aws_bedrockagentcore_agent_runtime.agent_runtime]
+}
+
+# Amplify API management
+module "amplify" {
+  source = "./modules/amplify"
+  
+  project_name         = "agentic-ai-foundation"
+  cognito_user_pool_id = module.cognito.user_pool_id
+  cognito_client_id    = module.cognito.user_pool_client_id
+  discovery_url        = module.cognito.user_pool_discovery_url
+  lambda_function_name = module.agentcore_lambda.lambda_function_name
+  lambda_invoke_arn    = module.agentcore_lambda.lambda_invoke_arn
+  
+  allowed_origins = [
+    "*"
+  ]
+  
+  depends_on = [module.cognito, module.agentcore_lambda]
+}
+
+# CloudFront Module (Frontend Hosting with CI/CD)
+module "cloudfront" {
+  source = "./modules/cloudfront"
+  
+  project_name               = "agentic-ai-foundation"
+  branch_name                = "main"
+  cognito_user_pool_id       = module.cognito.user_pool_id
+  cognito_client_id          = module.cognito.user_pool_client_id
+  api_gateway_url            = module.amplify.api_gateway_url
+  
+  build_environment_variables = {
+    NODE_ENV = "production"
+  }
+
+  depends_on = [module.amplify]
 }
