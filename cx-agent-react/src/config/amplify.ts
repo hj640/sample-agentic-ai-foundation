@@ -15,7 +15,6 @@ const amplifyConfig = {
     Cognito: {
       userPoolId: config.userPoolId!,
       userPoolClientId: config.userPoolClientId!,
-      identityPoolId: config.identityPoolId!,
       region: config.region!,
       loginWith: {
         email: true,
