@@ -20,6 +20,6 @@ phases:
   post_build:
     commands:
       - echo Build completed on `date`
-      - aws s3 sync cx-agent-react/out/ s3://$S3_BUCKET --delete
+      - aws s3 sync out/ s3://$S3_BUCKET --delete
       - echo Creating CloudFront invalidation...
       - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
