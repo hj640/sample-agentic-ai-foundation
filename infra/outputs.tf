@@ -37,3 +37,28 @@ output "s3_bucket_name" {
   description = "Name of the S3 bucket for knowledge base"
   value       = module.kb_stack.s3_bucket_name
 }
+
+output "api_gateway_url" {
+  description = "API Gateway URL"
+  value       = module.api_gateway.api_gateway_url
+}
+
+output "lambda_function_name" {
+  description = "Lambda function name"
+  value       = module.agentcore_lambda.lambda_function_name
+}
+
+output "cloudfront_url" {
+  description = "CloudFront Distribution URL"
+  value       = module.cloudfront.cloudfront_url
+}
+
+output "cloudfront_distribution_id" {
+  description = "CloudFront Distribution ID"
+  value       = module.cloudfront.cloudfront_distribution_id
+}
+
+output "codecommit_repository_name" {
+  description = "CodeCommit Repository Name"
+  value       = module.cloudfront.codecommit_repository_name
+}

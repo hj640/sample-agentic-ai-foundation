@@ -178,6 +178,10 @@ terraform init
 
 > ℹ️ If you're prompted for an S3 Bucket here, refer back to **Step 1: Configuration** for guidance if needed.
 
+```sh
+terraform plan
+```
+
 Once Terraform is initialized, you should be able to deploy the main solution infrastructure:
 
 ```sh
@@ -187,7 +191,7 @@ terraform apply
 The output values shown by Terraform after deployment will include information like the unique IDs of deployed user pool, Bedrock Guardrail, etc. 
 
 
-### Step 4a: Ingest Knowledge Base Documentation
+### Step 4: Ingest Knowledge Base Documentation
 
 If you have internal documents your agent should be able to search over to help generate answers for users, You can ingest them into the created Amazon Bedrock Knowledge Base.
 
@@ -208,33 +212,42 @@ aws bedrock-agent start-ingestion-job \
 This sync will run asynchronously and may take time to complete, especially for large corpora. You can check the progress of sync jobs via the [Amazon Bedrock Console](https://console.aws.amazon.com/bedrock/home?#/knowledge-bases) or the [GetIngestionJob API](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_GetIngestionJob.html). Once it completes successfully, your documents should be visible to your agent in search results.
 
 
-### Step 4b: Create a Cognito User
+### Step 5: Configure CI/CD
 
-To be able to talk to your deployed agent, you'll need to create a user for yourself in the deployed Amazon Cognito User Pool. You can do this through the [Amazon Cognito Console](https://console.aws.amazon.com/cognito/v2/idp/user-pools), or through the CLI if you prefer.
-
-A basic example CLI script to create yourself a user and set a non-temporary password is provided below. You'll need to set `COGNITO_USERNAME` to your email address, and `COGNITO_PASSWORD` to a conformant password (8+ characters, containing upper- and lower-case characters and numbers and special characters).
-
-> ⚠️ **Note:** These configurations are security-relevant, and the most appropriate settings will depend on your situation (applicable policies, whether you are generating credentials for yourself or somebody else, etc).
->
-> In particular, the below commands are **not** recommended for setting up multiple users: Cognito can handle generating temporary credentials for you and sharing them privately to users' email addresses. For more detailed information, see the [Amazon Cognito developer guide](https://docs.aws.amazon.com/cognito/latest/developerguide/how-to-create-user-accounts.html).
-
+Make sure you are on the root directory of the code repository. Configure the CodeCommit remote:
 ```bash
-# Edit these parameters:
-COGNITO_USERNAME=TODO
-COGNITO_PASSWORD=TODO
+git remote add codecommit codecommit://agentic-ai-foundation
+```
+Initial Push 
+```bash
+git push codecommit HEAD:refs/heads/main --force
+```
+Subsequent Updates 
+- For future updates, use the standard Git workflow: 
+```bash
+git add .
+git commit -m "Your commit message here"
+git push codecommit main
+```
 
-# The temporary password hard-coded below will be overridden by the next cmd:
-aws cognito-idp admin-create-user \
-  --user-pool-id $(terraform output -raw user_pool_id) \
-  --username $COGNITO_USERNAME \
-  --temporary-password 'Day1Agentic!'
+The CodeBuild process typically takes 2-3 minutes to complete. Monitor the build status using AWS CLI or AWS CodeBuild console: 
+```bash
+# List recent builds CLI: 
+aws codebuild list-builds-for-project \
+  --project-name agentic-ai-foundation-frontend-build \
+  --max-items 1
 
-# Set the permanent password:
-aws cognito-idp admin-set-user-password \
-  --user-pool-id $(terraform output -raw user_pool_id) \
-  --username $COGNITO_USERNAME \
-  --password $COGNITO_PASSWORD \
-  --permanent
+# Get detailed build status: 
+aws codebuild batch-get-builds --ids <BUILD_ID_FROM_ABOVE>
+```
+
+### Step 6: Access your Application
+
+Once the build completes successfully, retrieve CloudFront distribution URL: 
+```bash
+# List recent builds CLI: 
+cd infra
+terraform output cloudfront_url
 ```
 
 
